@@ -566,4 +566,518 @@ async def countdown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     for remaining in range(seconds-1, -1, -1):
         time.sleep(1)
-        await message.edit_text(f"⏳ Co
+        await message.edit_text(f"⏳ Countdown: {remaining}")
+    
+    await message.edit_text("🎉 Countdown finished!")
+
+async def timer(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args or not context.args[0].isdigit():
+        await update.message.reply_text("Usage: /timer <minutes>")
+        return
+    
+    minutes = int(context.args[0])
+    if minutes < 1 or minutes > 120:
+        await update.message.reply_text("Please choose between 1-120 minutes")
+        return
+    
+    message = await update.message.reply_text(f"⏳ Timer set for {minutes} minute(s)")
+    time.sleep(minutes * 60)
+    await message.edit_text(f"⏰ Timer for {minutes} minute(s) is up!")
+
+async def rate(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args:
+        await update.message.reply_text("Usage: /rate <thing>")
+        return
+    
+    thing = ' '.join(context.args)
+    rating = random.randint(1, 10)
+    await update.message.reply_text(f"I'd rate {thing} a {rating}/10 🌟")
+
+async def decide(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args or '|' not in ' '.join(context.args):
+        await update.message.reply_text("Usage: /decide <option1|option2>")
+        return
+    
+    options = ' '.join(context.args).split('|')
+    if len(options) < 2:
+        await update.message.reply_text("Please provide at least 2 options separated by |")
+        return
+    
+    choice = random.choice(options).strip()
+    await update.message.reply_text(f"I choose: {choice}")
+
+async def color_preview(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args:
+        await update.message.reply_text("Usage: /color <hex_code> (e.g., /color FF5733)")
+        return
+    
+    hex_color = context.args[0].lstrip('#')
+    if len(hex_color) != 6:
+        await update.message.reply_text("Invalid hex color. Please provide a 6-character hex code (e.g., FF5733)")
+        return
+    
+    try:
+        # Create a simple color image
+        from PIL import Image, ImageDraw
+        img = Image.new('RGB', (200, 200), color=f"#{hex_color}")
+        draw = ImageDraw.Draw(img)
+        draw.text((10, 10), f"#{hex_color}", fill="black")
+        
+        bio = io.BytesIO()
+        img.save(bio, "PNG")
+        bio.seek(0)
+        
+        await update.message.reply_photo(photo=bio, caption=f"Color preview for #{hex_color}")
+    except Exception as e:
+        await update.message.reply_text(f"Error generating color preview: {str(e)}")
+
+async def fancy_font(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args:
+        await update.message.reply_text("Usage: /font <text>")
+        return
+    
+    text = ' '.join(context.args)
+    # A simple font transformation (you can expand this)
+    fancy_text = text.upper().translate(str.maketrans(
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        "𝔄𝔅ℭ𝔇𝔈𝔉𝔊ℌℑ𝔍𝔎𝔏𝔐𝔑𝔒𝔓𝔔ℜ𝔖𝔗𝔘𝔙𝔚𝔛𝔜ℨ"
+    ))
+    await update.message.reply_text(fancy_text)
+
+async def temp_convert(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args or len(context.args) != 2:
+        await update.message.reply_text("Usage: /temp <value> <C/F/K> (e.g., /temp 32 F)")
+        return
+    
+    try:
+        value = float(context.args[0])
+        unit = context.args[1].upper()
+        
+        if unit == 'C':
+            f = (value * 9/5) + 32
+            k = value + 273.15
+            await update.message.reply_text(
+                f"🌡 Temperature Conversion:\n"
+                f"{value}°C = {f:.1f}°F\n"
+                f"{value}°C = {k:.1f}K"
+            )
+        elif unit == 'F':
+            c = (value - 32) * 5/9
+            k = c + 273.15
+            await update.message.reply_text(
+                f"🌡 Temperature Conversion:\n"
+                f"{value}°F = {c:.1f}°C\n"
+                f"{value}°F = {k:.1f}K"
+            )
+        elif unit == 'K':
+            c = value - 273.15
+            f = (c * 9/5) + 32
+            await update.message.reply_text(
+                f"🌡 Temperature Conversion:\n"
+                f"{value}K = {c:.1f}°C\n"
+                f"{value}K = {f:.1f}°F"
+            )
+        else:
+            await update.message.reply_text("Invalid unit. Use C, F, or K")
+    except ValueError:
+        await update.message.reply_text("Invalid temperature value")
+
+async def currency_convert(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if len(context.args) < 3:
+        await update.message.reply_text("Usage: /currency <amount> <from> <to> (e.g., /currency 100 USD INR)")
+        return
+    
+    try:
+        amount = float(context.args[0])
+        from_curr = context.args[1].upper()
+        to_curr = context.args[2].upper()
+        
+        # In a real implementation, you would call a currency API here
+        # This is just a placeholder with mock conversion rates
+        rates = {
+            'USD': {'INR': 83.5, 'EUR': 0.93, 'GBP': 0.80},
+            'EUR': {'USD': 1.08, 'INR': 90.2, 'GBP': 0.86},
+            'GBP': {'USD': 1.25, 'EUR': 1.16, 'INR': 104.5},
+            'INR': {'USD': 0.012, 'EUR': 0.011, 'GBP': 0.0096}
+        }
+        
+        if from_curr in rates and to_curr in rates[from_curr]:
+            converted = amount * rates[from_curr][to_curr]
+            await update.message.reply_text(
+                f"💱 Currency Conversion:\n"
+                f"{amount} {from_curr} = {converted:.2f} {to_curr}\n\n"
+                f"Note: Using mock rates. For real rates, integrate with a currency API."
+            )
+        else:
+            await update.message.reply_text("Unsupported currency pair")
+    except ValueError:
+        await update.message.reply_text("Invalid amount")
+
+async def unit_convert(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if len(context.args) < 2:
+        await update.message.reply_text("Usage: /units <value> <unit1→unit2> (e.g., /units 10 km→m)")
+        return
+    
+    try:
+        value = float(context.args[0])
+        conversion = context.args[1]
+        
+        if '→' not in conversion:
+            await update.message.reply_text("Invalid format. Use unit1→unit2")
+            return
+        
+        from_unit, to_unit = conversion.split('→')
+        
+        # Define conversion factors
+        conversions = {
+            'length': {
+                'm→km': 0.001,
+                'km→m': 1000,
+                'cm→m': 0.01,
+                'm→cm': 100,
+                'in→cm': 2.54,
+                'cm→in': 0.3937,
+                'ft→m': 0.3048,
+                'm→ft': 3.28084
+            },
+            'weight': {
+                'g→kg': 0.001,
+                'kg→g': 1000,
+                'lb→kg': 0.453592,
+                'kg→lb': 2.20462,
+                'oz→g': 28.3495,
+                'g→oz': 0.035274
+            },
+            'volume': {
+                'ml→l': 0.001,
+                'l→ml': 1000,
+                'gal→l': 3.78541,
+                'l→gal': 0.264172,
+                'cup→ml': 236.588,
+                'ml→cup': 0.00422675
+            }
+        }
+        
+        found = False
+        for category in conversions.values():
+            if conversion in category:
+                converted = value * category[conversion]
+                await update.message.reply_text(
+                    f"📏 Unit Conversion:\n"
+                    f"{value} {from_unit} = {converted:.4f} {to_unit}"
+                )
+                found = True
+                break
+        
+        if not found:
+            await update.message.reply_text("Unsupported unit conversion")
+    except ValueError:
+        await update.message.reply_text("Invalid value")
+
+async def emoji_suggest(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args:
+        await update.message.reply_text("Usage: /emoji <text>")
+        return
+    
+    text = ' '.join(context.args).lower()
+    emoji_map = {
+        'happy': '😊 😄 😃 😁',
+        'sad': '😢 😭 😞 😔',
+        'angry': '😠 😡 🤬 👿',
+        'love': '❤️ 💕 💘 😍',
+        'food': '🍔 🍕 🍟 🌮',
+        'animal': '🐶 🐱 🦁 🐯',
+        'weather': '☀️ 🌧 ⚡ ❄️',
+        'time': '⏰ ⌛ ⏳ 🕰',
+        'music': '🎵 🎶 🎧 🎼',
+        'sport': '⚽ 🏀 🎾 🏈'
+    }
+    
+    matches = []
+    for word, emojis in emoji_map.items():
+        if word in text:
+            matches.append(emojis)
+    
+    if matches:
+        await update.message.reply_text(" ".join(matches))
+    else:
+        await update.message.reply_text("🤔 No matching emojis found. Try words like happy, sad, food, etc.")
+
+async def bmi_calc(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if len(context.args) < 2:
+        await update.message.reply_text("Usage: /bmi <height in cm> <weight in kg>")
+        return
+    
+    try:
+        height = float(context.args[0])
+        weight = float(context.args[1])
+        
+        if height <= 0 or weight <= 0:
+            await update.message.reply_text("Height and weight must be positive values")
+            return
+        
+        height_m = height / 100
+        bmi = weight / (height_m ** 2)
+        
+        if bmi < 18.5:
+            category = "Underweight"
+        elif 18.5 <= bmi < 25:
+            category = "Normal weight"
+        elif 25 <= bmi < 30:
+            category = "Overweight"
+        else:
+            category = "Obese"
+        
+        await update.message.reply_text(
+            f"⚖️ BMI Calculation:\n"
+            f"Height: {height} cm\n"
+            f"Weight: {weight} kg\n"
+            f"BMI: {bmi:.1f}\n"
+            f"Category: {category}"
+        )
+    except ValueError:
+        await update.message.reply_text("Invalid height or weight")
+
+async def get_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat = update.effective_chat
+    user = update.effective_user
+    
+    if chat.type == "private":
+        response = f"👤 Your ID: `{user.id}`"
+    else:
+        response = (
+            f"👥 Chat ID: `{chat.id}`\n"
+            f"👤 Your ID: `{user.id}`"
+        )
+    
+    if update.message.reply_to_message:
+        replied_user = update.message.reply_to_message.from_user
+        response += f"\n🔄 Replied to user ID: `{replied_user.id}`"
+    
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("Copy ID", callback_data=f"copy_{user.id}")]
+    ])
+    
+    await update.message.reply_text(response, reply_markup=keyboard, parse_mode='Markdown')
+
+async def copy_id_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    if query.data.startswith("copy_"):
+        user_id = query.data.split("_")[1]
+        await query.answer(f"Copied ID: {user_id}", show_alert=True)
+
+# ======================
+# Message handlers
+# ======================
+
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if config.maintenance_mode and update.effective_user.id != config.owner_id:
+        await update.message.reply_text("🛠 Bot is under maintenance. Please try again later.")
+        return
+    
+    banned_users = load_banned_users()
+    if update.effective_user.id in banned_users:
+        await update.message.reply_text("🚫 You are banned from using this bot.")
+        return
+    
+    user_message = update.message.text
+    chat_id = update.effective_chat.id
+    
+    # Check if message starts with any command (skip processing)
+    if user_message.startswith('/'):
+        return
+    
+    # Show typing action
+    await context.bot.send_chat_action(chat_id=chat_id, action="typing")
+    
+    # Update conversation history
+    update_conversation_history(chat_id, "user", user_message)
+    
+    # Generate response
+    response = await generate_response(chat_id, user_message)
+    
+    # Update conversation history with bot's response
+    update_conversation_history(chat_id, "model", response)
+    
+    await update.message.reply_text(response)
+
+async def clear_memory(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    history = load_conversation_history()
+    
+    if str(chat_id) in history:
+        del history[str(chat_id)]
+        save_conversation_history(history)
+        await update.message.reply_text("🧹 Chat history cleared!")
+    else:
+        await update.message.reply_text("No chat history to clear.")
+
+async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    status_msg = (
+        f"🤖 **{config.bot_name} Status** 🤖\n\n"
+        f"✦ Owner: {config.owner_name}\n"
+        f"✦ Language: {config.language}\n"
+        f"✦ Maintenance: {'🛠 ON' if config.maintenance_mode else '✅ OFF'}\n"
+        f"✦ Support: {config.support_group}\n\n"
+        "All systems operational! 🚀"
+    )
+    await update.message.reply_text(status_msg, parse_mode='Markdown')
+
+async def apistats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != config.owner_id:
+        await update.message.reply_text("❌ This command is only for my owner!")
+        return
+    
+    stats_msg = "🔌 **API Statistics** 🔌\n\n"
+    stats_msg += f"✦ Current Model: {gemini.get_current_model()}\n"
+    stats_msg += "🔢 **Key Usage**:\n"
+    
+    for i, key in enumerate(gemini.api_keys):
+        stats_msg += f"  ▸ Key {i+1}: {gemini.key_usage[key]} requests\n"
+    
+    await update.message.reply_text(stats_msg, parse_mode='Markdown')
+
+async def eval_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != config.owner_id:
+        await update.message.reply_text("❌ This command is only for my owner!")
+        return
+    
+    if not context.args:
+        await update.message.reply_text("Usage: /eval <python code>")
+        return
+    
+    code = ' '.join(context.args)
+    try:
+        # Restricted environment for safety
+        local_vars = {
+            'update': update,
+            'context': context,
+            'config': config,
+            'gemini': gemini
+        }
+        
+        # Remove any import statements for security
+        if 'import ' in code:
+            raise ValueError("Import statements are not allowed")
+            
+        # Execute the code
+        exec(f"result = {code}", globals(), local_vars)
+        result = local_vars.get('result', 'No result returned')
+        
+        await update.message.reply_text(f"✅ Execution successful:\n```\n{result}\n```", parse_mode='Markdown')
+    except Exception as e:
+        await update.message.reply_text(f"❌ Error:\n```\n{str(e)}\n```", parse_mode='Markdown')
+
+async def server(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != config.owner_id:
+        await update.message.reply_text("❌ This command is only for my owner!")
+        return
+    
+    try:
+        import psutil
+        cpu = psutil.cpu_percent()
+        memory = psutil.virtual_memory()
+        disk = psutil.disk_usage('/')
+        
+        stats_msg = (
+            "🖥 **Server Status** 🖥\n\n"
+            f"✦ CPU Usage: {cpu}%\n"
+            f"✦ Memory: {memory.percent}% used ({memory.used/1024/1024:.1f}MB/{memory.total/1024/1024:.1f}MB)\n"
+            f"✦ Disk: {disk.percent}% used ({disk.used/1024/1024:.1f}MB/{disk.total/1024/1024:.1f}MB)\n"
+            f"✦ Uptime: {psutil.boot_time()}"
+        )
+        
+        await update.message.reply_text(stats_msg)
+    except ImportError:
+        await update.message.reply_text("psutil module not installed")
+    except Exception as e:
+        await update.message.reply_text(f"Error getting server stats: {str(e)}")
+
+# ======================
+# Error handler
+# ======================
+
+async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    logger.error(f"Update {update} caused error {context.error}")
+    
+    if update.effective_message:
+        await update.effective_message.reply_text(
+            "Oops! Kuch to gadbad hai... 😅\n"
+            "Error ho gaya. Thodi der baad try karo ya owner ko batado."
+        )
+
+# ======================
+# Main function
+# ======================
+
+def main():
+    # Create the Application
+    application = Application.builder().token(config.config['TELEGRAM_BOT_TOKEN']).build()
+    
+    # Add command handlers
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("help", button_handler))
+    application.add_handler(CommandHandler("clearmemory", clear_memory))
+    application.add_handler(CommandHandler("status", status))
+    
+    # Owner commands
+    application.add_handler(CommandHandler("broadcast", broadcast))
+    application.add_handler(CommandHandler("stats", stats))
+    application.add_handler(CommandHandler("ban", ban_user))
+    application.add_handler(CommandHandler("unban", unban_user))
+    application.add_handler(CommandHandler("maintenance", maintenance))
+    application.add_handler(CommandHandler("getuser", get_user))
+    application.add_handler(CommandHandler("apistats", apistats))
+    application.add_handler(CommandHandler("backup", backup))
+    application.add_handler(CommandHandler("eval", eval_command))
+    application.add_handler(CommandHandler("server", server))
+    application.add_handler(CommandHandler("ping", ping))
+    
+    # Utility commands
+    application.add_handler(CommandHandler("dice", dice))
+    application.add_handler(CommandHandler("flip", flip))
+    application.add_handler(CommandHandler("password", password))
+    application.add_handler(CommandHandler("qr", qr_code))
+    application.add_handler(CommandHandler("countdown", countdown))
+    application.add_handler(CommandHandler("timer", timer))
+    application.add_handler(CommandHandler("rate", rate))
+    application.add_handler(CommandHandler("decide", decide))
+    application.add_handler(CommandHandler("color", color_preview))
+    application.add_handler(CommandHandler("font", fancy_font))
+    application.add_handler(CommandHandler("temp", temp_convert))
+    application.add_handler(CommandHandler("currency", currency_convert))
+    application.add_handler(CommandHandler("units", unit_convert))
+    application.add_handler(CommandHandler("emoji", emoji_suggest))
+    application.add_handler(CommandHandler("bmi", bmi_calc))
+    application.add_handler(CommandHandler("id", get_id))
+    
+    # Button handler
+    application.add_handler(CallbackQueryHandler(button_handler))
+    application.add_handler(CallbackQueryHandler(copy_id_button))
+    
+     # Message handler
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    
+    # Error handler
+    application.add_error_handler(error_handler)
+    
+    # Start the Bot
+    logger.info("Bot is running...")
+    application.run_polling(allowed_updates=Update.ALL_TYPES)
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "🤖 Bot is running!"
+
+def run_flask():
+    app.run(host="0.0.0.0", port=8000)
+    
+if __name__ == "__main__":
+    # Start Flask server in a separate thread
+    threading.Thread(target=run_flask).start()
+    
+    main()
+    # Simple Flask server for health check
+
