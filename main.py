@@ -31,12 +31,12 @@ logger = logging.getLogger(__name__)
 class BotConfig:
     def __init__(self):
         self.config = self.load_config()
-        self.bot_name = self.config.get('BOT_NAME', 'ᴄʜᴀᴛ ᴄᴏᴍᴘᴀɴɪᴏɴ')
-        self.owner_name = self.config.get('OWNER_NAME', 'ʙᴏᴛ ᴏᴡɴᴇʀ')
-        self.language = self.config.get('LANGUAGE', 'ʜɪɴɢʟɪꜱʜ')
-        self.support_group = self.config.get('SUPPORT_GROUP', 'https://t.me/yourgroup')
-        self.bot_username = self.config.get('BOT_USERNAME', '@YourBotUsername')
-        self.owner_id = 7996509135  # Your user ID
+        self.bot_name = self.config.get('BOT_NAME', '𝙷𝚒𝚗𝚊𝚝𝚊')
+        self.owner_name = self.config.get('OWNER_NAME', '𝙰𝚜𝚑')
+        self.language = self.config.get('LANGUAGE', '𝙷𝚒𝚗𝚍𝚒')
+        self.support_group = self.config.get('SUPPORT_GROUP', 'https://t.me/vcpeople')
+        self.bot_username = self.config.get('BOT_USERNAME', '@thehintaprobot')
+        self.owner_id = 7269251740  # Your user ID
         self.maintenance_mode = False
         
     def load_config(self):
