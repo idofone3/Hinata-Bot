@@ -89,8 +89,8 @@ class GeminiAPI:
         self.api_keys = self.parse_api_keys()
         self.current_key_index = 0
         self.model_priority = [
-            "gemini-1.5-pro-lite",
-            "gemini-2.0-flash"
+            "gemini-2.5-flash-lite",
+            "gemini-2.5-flash"
         ]
         self.current_model_index = 0
         self.key_usage = {key: 0 for key in self.api_keys}
@@ -158,7 +158,7 @@ class GeminiAPI:
             except httpx.HTTPStatusError as e:
                 last_error = e
                 if e.response.status_code == 429:
-                    if self.get_current_model() != "gemini-1.5-pro-lite":
+                    if self.get_current_model() != "gemini-2.5-flash-lite":
                         self.downgrade_model()
                     else:
                         self.rotate_key()
